@@ -1,0 +1,9 @@
+{
+  "name": "beaver-cs-assistant",
+  "version": "1.0.0",
+  "description": "Assistente de Customer Success da Agência Beaver com IA",
+  "main": "index.html",
+  "scripts": {
+    "dev": "vercel dev"
+  }
+}
