@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beaver CS · Assistente</title>
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root{--beaver:#7B3FE4;--beaver-light:#9B6FF0;--beaver-dark:#5A2DB0;--cream:#FAF8F5;--ink:#1A1025;--ink-soft:#3D2E52;--mist:#EDE8F7;--mist-deep:#D9D0F0;--green:#2DCB85;--amber:#F0A500;--red:#E84040;--border:rgba(123,63,228,0.12)}
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'DM Sans',sans-serif;background:var(--cream);height:100vh;display:flex;flex-direction:column;font-size:14px;overflow:hidden}
+header{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;background:var(--ink);border-bottom:2px solid var(--beaver)}
+.logo{display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;background:var(--beaver);border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:16px}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:#fff}
+.logo-text span{color:var(--beaver-light)}
+.badge{display:flex;align-items:center;gap:6px;background:rgba(45,203,133,0.15);border:1px solid rgba(45,203,133,0.3);border-radius:20px;padding:3px 12px;font-size:11px;font-weight:500;color:var(--green)}
+.pulse{width:6px;height:6px;background:var(--green);border-radius:50%;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1;transform:scale(1)}50%{opacity:.5;transform:scale(.8)}}
+.tab-bar{display:flex;background:var(--ink);border-bottom:1px solid rgba(123,63,228,0.2);padding-left:24px;flex-shrink:0}
+.tab{padding:10px 20px;font-size:12.5px;cursor:pointer;background:none;border:none;font-family:'DM Sans',sans-serif;transition:all .15s;border-bottom:2px solid transparent;color:rgba(255,255,255,0.45);font-weight:400}
+.tab.active{font-weight:600;color:#fff;border-bottom-color:var(--beaver)}
+.main{display:flex;flex:1;overflow:hidden;min-height:0}
+aside{width:250px;background:var(--ink);border-right:1px solid rgba(123,63,228,0.2);display:flex;flex-direction:column;overflow-y:auto;padding:18px 13px;gap:16px;flex-shrink:0}
+.side-title{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:2px;text-transform:uppercase;color:rgba(255,255,255,0.3);padding-left:3px;margin-bottom:6px}
+.quick-btn{width:100%;text-align:left;background:rgba(255,255,255,0.04);border:1px solid rgba(123,63,228,0.15);border-radius:9px;padding:9px 10px;color:rgba(255,255,255,0.72);font-family:'DM Sans',sans-serif;font-size:11.5px;cursor:pointer;line-height:1.4;margin-bottom:4px;display:flex;align-items:flex-start;gap:7px;transition:all .15s}
+.quick-btn:hover{background:rgba(123,63,228,0.14);border-color:var(--beaver);color:#fff;transform:translateX(3px)}
+.divider{border:none;border-top:1px solid rgba(255,255,255,0.06);margin:8px 0}
+.tone-btn{display:flex;align-items:center;gap:7px;padding:7px 10px;border-radius:8px;border:1px solid rgba(255,255,255,0.07);background:transparent;cursor:pointer;color:rgba(255,255,255,0.55);font-size:11.5px;margin-bottom:4px;width:100%;text-align:left;font-family:'DM Sans',sans-serif;transition:all .15s}
+.tone-btn.active{border-color:var(--beaver);background:rgba(123,63,228,0.15);color:#fff}
+.kb-text{font-size:11px;color:rgba(255,255,255,0.38);line-height:1.8;padding-left:3px}
+#content{flex:1;display:flex;flex-direction:column;min-width:0;overflow:hidden}
+.chat-area{display:flex;flex-direction:column;height:100%;overflow:hidden}
+.msgs{flex:1;overflow-y:scroll !important;overflow-x:hidden;padding:22px 26px;display:flex;flex-direction:column;gap:18px}
+.welcome-card{background:linear-gradient(135deg,var(--beaver) 0%,var(--beaver-dark) 100%);border-radius:16px;padding:20px 24px;color:#fff}
+.welcome-card h2{font-family:'Syne',sans-serif;font-size:18px;font-weight:800;margin-bottom:5px}
+.welcome-card p{font-size:13px;opacity:.85;line-height:1.5}
+.msg-row{display:flex;align-items:flex-start;gap:9px;animation:fadeUp .3s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+.msg-row.user{flex-direction:row-reverse}
+.avatar{width:30px;height:30px;border-radius:8px;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;background:var(--beaver);color:#fff;font-weight:700;font-family:'Syne',sans-serif}
+.user .avatar{background:var(--ink);font-size:10px}
+.msg-content{max-width:65%;word-wrap:break-word;overflow-wrap:break-word}
+.msg-label{font-size:9.5px;font-weight:600;letter-spacing:.5px;color:rgba(26,16,37,0.35);text-transform:uppercase;padding-left:2px;margin-bottom:3px}
+.user-bubble{background:var(--beaver);border-radius:13px;border-top-right-radius:3px;padding:10px 14px;font-size:13.5px;line-height:1.6;color:#fff;word-wrap:break-word;overflow-wrap:break-word}
+.response-wrap{display:flex;flex-direction:column;gap:7px;max-width:65%;word-wrap:break-word;overflow-wrap:break-word}
+.block-internal{background:#fff;border:1px solid var(--border);border-left:3px solid var(--amber);border-radius:12px;border-top-left-radius:3px;padding:11px 14px;font-size:12.5px;line-height:1.6;color:var(--ink-soft);word-wrap:break-word;overflow-wrap:break-word}
+.block-label{font-family:'Syne',sans-serif;font-size:9px;font-weight:700;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px;display:flex;align-items:center;gap:4px}
+.block-label.amber{color:var(--amber)}
+.block-label.beaver{color:var(--beaver)}
+.block-msg{background:var(--mist);border:1.5px solid var(--beaver);border-radius:12px;border-top-left-radius:3px;padding:13px 15px;word-wrap:break-word;overflow-wrap:break-word}
+.block-msg-text{white-space:pre-wrap;font-size:13.5px;line-height:1.65;color:var(--ink);border-left:3px solid var(--beaver-light);padding-left:11px;margin-top:2px;word-wrap:break-word;overflow-wrap:break-word}
+.actions-row{display:flex;gap:5px;flex-wrap:wrap;margin-top:4px}
+.copy-btn{background:none;border:1px solid var(--border);border-radius:7px;padding:3px 10px;font-size:10.5px;color:var(--beaver);cursor:pointer;font-family:'DM Sans',sans-serif;font-weight:500;display:flex;align-items:center;gap:3px;transition:all .15s}
+.copy-btn:hover{background:var(--mist);border-color:var(--beaver)}
+.copy-btn.copied{background:rgba(45,203,133,0.08);border-color:var(--green);color:var(--green)}
+.typing-dots{display:flex;gap:5px;padding:11px 14px;background:#fff;border:1px solid var(--border);border-radius:13px;border-top-left-radius:3px}
+.typing-dots span{width:7px;height:7px;border-radius:50%;background:var(--beaver-light);animation:bounce 1.2s infinite}
+@keyframes bounce{0%,60%,100%{transform:translateY(0)}30%{transform:translateY(-6px)}}
+.typing-dots span:nth-child(2){animation-delay:.2s}
+.typing-dots span:nth-child(3){animation-delay:.4s}
+.input-area{padding:14px 26px 18px;border-top:1px solid var(--border);background:var(--cream);flex-shrink:0}
+.input-wrapper{background:#fff;border:1.5px solid var(--border);border-radius:13px;display:flex;flex-direction:column;box-shadow:0 3px 16px rgba(123,63,228,0.07)}
+.input-wrapper:focus-within{border-color:var(--beaver);box-shadow:0 3px 16px rgba(123,63,228,0.15)}
+.input-meta{display:flex;align-items:center;gap:8px;padding:9px 13px 0}
+.input-meta-label{font-size:10px;font-weight:600;color:rgba(26,16,37,0.35);text-transform:uppercase;letter-spacing:.8px}
+.client-input{border:none;outline:none;font-family:'DM Sans',sans-serif;font-size:12.5px;font-weight:500;color:var(--beaver);background:transparent;width:150px}
+.textarea{border:none;outline:none;resize:none;font-family:'DM Sans',sans-serif;font-size:13.5px;line-height:1.6;color:var(--ink);padding:9px 13px;background:transparent;min-height:60px;max-height:130px}
+.input-footer{display:flex;align-items:center;justify-content:space-between;padding:6px 12px 9px}
+.hint{font-size:11px;color:rgba(26,16,37,0.27)}
+.send-btn{background:var(--beaver);color:#fff;border:none;border-radius:9px;padding:8px 17px;font-family:'Syne',sans-serif;font-size:12.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;gap:5px;transition:all .15s}
+.send-btn:hover{background:var(--beaver-dark)}
+.send-btn:disabled{opacity:.5;cursor:not-allowed}
+.error-bubble{background:#fff;border:1px solid var(--border);border-left:3px solid var(--red);border-radius:13px;padding:11px 14px;font-size:13px;color:#c0392b;max-width:65%;word-wrap:break-word}
+.report-area{flex:1;overflow-y:auto;padding:22px 26px;display:flex;flex-direction:column;gap:16px}
+.upload-card{background:#fff;border:2px dashed var(--mist-deep);border-radius:16px;padding:28px 24px;display:flex;flex-direction:column;align-items:center;gap:12px;cursor:pointer;transition:all .2s;text-align:center}
+.upload-card:hover{border-color:var(--beaver);background:var(--mist)}
+.upload-icon{font-size:36px;margin-bottom:4px}
+.upload-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:700;color:var(--ink)}
+.upload-sub{font-size:12.5px;color:rgba(26,16,37,0.45);line-height:1.5}
+.file-preview{background:#fff;border:1px solid var(--border);border-radius:12px;padding:12px 15px;display:flex;align-items:center;gap:12px}
+.file-name{font-size:13px;font-weight:500;color:var(--ink);flex:1}
+.remove-btn{background:none;border:1px solid rgba(232,64,64,0.3);border-radius:6px;padding:3px 9px;font-size:11px;color:var(--red);cursor:pointer;font-family:'DM Sans',sans-serif;transition:all .15s}
+.remove-btn:hover{background:rgba(232,64,64,0.08)}
+.context-row{display:flex;gap:10px}
+.context-input{flex:1;border:1px solid var(--border);border-radius:10px;padding:9px 13px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--ink);outline:none;background:#fff}
+.context-input:focus{border-color:var(--beaver)}
+.analyze-btn{background:var(--beaver);color:#fff;border:none;border-radius:10px;padding:9px 20px;font-family:'Syne',sans-serif;font-size:13px;font-weight:700;cursor:pointer;white-space:nowrap;transition:all .15s}
+.analyze-btn:hover{background:var(--beaver-dark)}
+.analyze-btn:disabled{opacity:.5;cursor:not-allowed}
+::-webkit-scrollbar{width:10px;height:10px}
+::-webkit-scrollbar-track{background:rgba(237,232,247,0.3)}
+::-webkit-scrollbar-thumb{background:var(--mist-deep);border-radius:10px;border:2px solid var(--cream)}
+::-webkit-scrollbar-thumb:hover{background:#C4B8E3}
+textarea::placeholder,input::placeholder{color:rgba(26,16,37,0.28)}
+.hidden{display:none!important}
+</style>
+</head>
+<body>
+
+<header>
+<div class="logo">
+<div class="logo-icon">🦫</div>
+<div class="logo-text">Beaver <span>CS · IA</span></div>
+</div>
+<div class="badge"><div class="pulse"></div>IA ativa</div>
+</header>
+
+<div class="tab-bar">
+<button class="tab active" onclick="switchTab('cs')">💬 Atendimento ao Cliente</button>
+<button class="tab" onclick="switchTab('report')">📊 Análise de Relatórios</button>
+</div>
+
+<div class="main">
+<aside id="sidebar"></aside>
+<div id="content"></div>
+</div>
+
+<script>
+let activeTab='cs',tone='padrao',loading=false,reportFile=null;
+
+function switchTab(tab){activeTab=tab;document.querySelectorAll('.tab').forEach(t=>t.classList.remove('active'));event.target.classList.add('active');renderTab()}
+
+function renderTab(){
+  const sidebar=document.getElementById('sidebar');
+  const content=document.getElementById('content');
+  
+  if(activeTab==='cs'){
+    sidebar.innerHTML=`
+      <div><div class="side-title">Atalhos rápidos</div>
+      <button class="quick-btn" onclick="sendQuick('O cliente quer saber o status de aprovação no iClips.')"><span>📋</span><span>Aprovação pendente</span></button>
+      <button class="quick-btn" onclick="sendQuick('Confirmar gravação amanhã.')"><span>🎬</span><span>Confirmar gravação</span></button>
+      <button class="quick-btn" onclick="sendQuick('Cliente insatisfeito.')"><span>⚠️</span><span>Gestão de crise</span></button>
+      <button class="quick-btn" onclick="sendQuick('Novo cliente assinou.')"><span>🚀</span><span>Onboarding</span></button>
+      <button class="quick-btn" onclick="sendQuick('Calcular orçamento: fornecedor R$ 800.')"><span>💰</span><span>Orçamento</span></button>
+      </div><hr class="divider">
+      <div><div class="side-title">Tom da resposta</div>
+      <button class="tone-btn active" onclick="setTone('padrao',this)">💜 Padrão Beaver</button>
+      <button class="tone-btn" onclick="setTone('formal',this)">🎩 Formal</button>
+      <button class="tone-btn" onclick="setTone('direto',this)">⚡ Direto</button>
+      </div>`;
+    
+    content.innerHTML=`
+      <div class="chat-area">
+        <div class="msgs" id="msgs">
+          <div class="welcome-card"><h2>Olá, equipe Beaver! 💜</h2><p>Assistente seguindo a Persona Beaver oficial. Descrevo situações e gero orientação + mensagem no padrão da agência.</p></div>
+        </div>
+        <div class="input-area">
+          <div class="input-wrapper">
+            <div class="input-meta"><span class="input-meta-label">Cliente:</span><input type="text" class="client-input" id="clientName" placeholder="Nome (opcional)"></div>
+            <textarea class="textarea" id="userInput" placeholder="Descreva a situação..." onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMessage()}"></textarea>
+            <div class="input-footer"><span class="hint">↵ Enter · Shift+↵ Nova linha</span><button class="send-btn" id="sendBtn" onclick="sendMessage()">Gerar resposta ↗</button></div>
+          </div>
+        </div>
+      </div>`;
+  } else {
+    sidebar.innerHTML=`
+      <div><div class="side-title">Como usar</div>
+      <div class="kb-text"><strong style="color:rgba(255,255,255,0.6)">1.</strong> Envie PDF/imagem do Reportei<br><br><strong style="color:rgba(255,255,255,0.6)">2.</strong> Informe nome do cliente<br><br><strong style="color:rgba(255,255,255,0.6)">3.</strong> Clique em Analisar</div>
+      </div><hr class="divider">
+      <div><div class="side-title">Tom da mensagem</div>
+      <div class="kb-text">✅ Positivos em destaque<br>⚡ Negativos com plano de ação<br>💜 Sempre proativo</div>
+      </div>`;
+    
+    content.innerHTML=`
+      <div class="chat-area">
+        <div class="report-area" id="reportArea">
+          <div class="upload-card" onclick="document.getElementById('fileInput').click()">
+            <div class="upload-icon">📄</div>
+            <div class="upload-title">Envie o relatório do Reportei</div>
+            <div class="upload-sub">Clique para selecionar PDF ou imagem</div>
+            <input type="file" id="fileInput" accept=".pdf,image/*" style="display:none" onchange="handleFile(this.files[0])">
+          </div>
+          <div id="filePreview" class="hidden"></div>
+          <div class="context-row">
+            <input class="context-input" id="reportClient" placeholder="Nome do cliente" style="max-width:200px">
+            <input class="context-input" id="reportContext" placeholder="Contexto adicional (opcional)">
+            <button class="analyze-btn" id="analyzeBtn" onclick="analyzeReport()" disabled>Analisar ↗</button>
+          </div>
+          <div id="reportResult"></div>
+        </div>
+      </div>`;
+  }
+}
+
+function setTone(t,el){tone=t;document.querySelectorAll('.tone-btn').forEach(e=>e.classList.remove('active'));el.classList.add('active')}
+function sendQuick(txt){document.getElementById('userInput').value=txt;sendMessage()}
+
+async function sendMessage(){
+  if(loading)return;
+  const input=document.getElementById('userInput'),clientName=document.getElementById('clientName').value.trim(),text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  addUserMsg(text);
+  loading=true;
+  document.getElementById('sendBtn').disabled=true;
+  showTyping();
+  try{
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getCSPrompt(),messages:[{role:'user',content:`${clientName?'Cliente: '+clientName+'\n':''}Situação: ${text}\nTom: ${tone}`}],max_tokens:1500})});
+    const data=await res.json();
+    removeTyping();
+    if(!res.ok){addErrorMsg('Erro ao gerar resposta.');return}
+    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    let cleanRaw=raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+    const jsonMatch=cleanRaw.match(/\{[\s\S]*\}/);
+    if(jsonMatch){cleanRaw=jsonMatch[0]}
+    let parsed;
+    try{
+      parsed=JSON.parse(cleanRaw);
+      if(!parsed.clientMsg){parsed={tag:'Geral',internal:'Verifique.',clientMsg:cleanRaw}}
+    }catch(e){
+      console.error('Parse error:',e,cleanRaw);
+      parsed={tag:'Geral',internal:'Não foi possível processar.',clientMsg:cleanRaw}
+    }
+    addAssistantMsg(parsed)
+  }catch{removeTyping();addErrorMsg('Erro de conexão.')}finally{loading=false;document.getElementById('sendBtn').disabled=false}
+}
+
+function addUserMsg(txt){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg-row user';d.innerHTML=`<div class="avatar">CS</div><div class="msg-content"><div class="msg-label" style="text-align:right">Equipe CS</div><div class="user-bubble">${esc(txt)}</div></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight}
+
+function addAssistantMsg(m){
+  const c=document.getElementById('msgs'),id='m'+Date.now(),d=document.createElement('div');
+  d.className='msg-row';
+  d.innerHTML=`<div class="avatar">🦫</div><div class="response-wrap"><div class="msg-label">Assistente</div>${m.tag&&m.tag!=='Resposta'&&m.tag!=='Geral'?'<div style="font-size:10px;color:var(--beaver);margin-bottom:4px;font-weight:600">📌 '+esc(m.tag)+'</div>':''}${m.internal&&m.internal!=='Verifique.'&&m.internal!=='Não foi possível processar.'?'<div class="block-internal"><div class="block-label amber">⚙️ Orientação interna</div><div>'+esc(m.internal)+'</div></div>':''}<div class="block-msg"><div class="block-label beaver">💬 Mensagem cliente</div><div class="block-msg-text" id="${id}">${esc(m.clientMsg)}</div></div><div class="actions-row"><button class="copy-btn" onclick="copy('${id}',this)">📋 Copiar</button></div></div>`;
+  c.appendChild(d);
+  c.scrollTop=c.scrollHeight;
+}
+
+function addErrorMsg(txt){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg-row';d.innerHTML=`<div class="avatar">🦫</div><div class="msg-content"><div class="msg-label">Assistente</div><div class="error-bubble">${txt}</div></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight}
+
+function showTyping(){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg-row';d.id='typing';d.innerHTML='<div class="avatar">🦫</div><div class="typing-dots"><span></span><span></span><span></span></div>';c.appendChild(d);c.scrollTop=c.scrollHeight}
+function removeTyping(){const e=document.getElementById('typing');if(e)e.remove()}
+
+function handleFile(file){reportFile=file;if(!file)return;document.querySelector('.upload-card').classList.add('hidden');const preview=document.getElementById('filePreview');preview.className='file-preview';preview.innerHTML=`<span style="font-size:22px">${file.type==='application/pdf'?'📄':'🖼️'}</span><div style="flex:1"><div class="file-name">${file.name}</div><div style="font-size:11px;color:rgba(26,16,37,0.4)">${(file.size/1024).toFixed(0)} KB</div></div><button class="remove-btn" onclick="clearFile()">Remover</button>`;document.getElementById('analyzeBtn').disabled=false}
+
+function clearFile(){reportFile=null;document.querySelector('.upload-card').classList.remove('hidden');document.getElementById('filePreview').className='hidden';document.getElementById('filePreview').innerHTML='';document.getElementById('analyzeBtn').disabled=true;document.getElementById('reportResult').innerHTML=''}
+
+async function analyzeReport(){
+  if(!reportFile||loading)return;
+  loading=true;
+  document.getElementById('analyzeBtn').disabled=true;
+  document.getElementById('reportResult').innerHTML='<div class="msg-row"><div class="avatar">🦫</div><div class="typing-dots"><span></span><span></span><span></span></div></div>';
+  
+  try{
+    const base64=await toBase64(reportFile);
+    const isPdf=reportFile.type==='application/pdf';
+    const clientName=document.getElementById('reportClient').value.trim();
+    const context=document.getElementById('reportContext').value.trim();
+    
+    const userContent=[
+      {type:isPdf?'document':'image',source:{type:'base64',media_type:reportFile.type,data:base64}},
+      {type:'text',text:`${clientName?'Cliente: '+clientName+'\n':''}${context?'Contexto: '+context:'Analise este relatório.'}`}
+    ];
+    
+    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getReportPrompt(),messages:[{role:'user',content:userContent}],max_tokens:1500})});
+    const data=await res.json();
+    
+    if(!res.ok){document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro ao analisar.</div>';return}
+    
+    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+    let parsed;try{parsed=JSON.parse(raw.replace(/```json|```/gm,'').trim())}catch{document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro ao processar.</div>';return}
+    
+    const rid='r'+Date.now();
+    document.getElementById('reportResult').innerHTML=`
+      <div class="response-wrap" style="max-width:100%">
+        ${parsed.internal?'<div class="block-internal"><div class="block-label amber">⚙️ Análise para a CS</div><div>'+esc(parsed.internal)+'</div></div>':''}
+        <div class="block-msg"><div class="block-label beaver">💬 Mensagem para o cliente</div><div class="block-msg-text" id="${rid}">${esc(parsed.clientMsg)}</div></div>
+        <div class="actions-row"><button class="copy-btn" onclick="copy('${rid}',this)">📋 Copiar</button></div>
+      </div>`;
+  }catch{document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro de conexão.</div>'}finally{loading=false;document.getElementById('analyzeBtn').disabled=false}
+}
+
+function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)})}
+
+function copy(id,btn){const el=document.getElementById(id);if(!el)return;navigator.clipboard.writeText(el.innerText.trim()).then(()=>{btn.classList.add('copied');btn.textContent='✓ Copiado!';setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML='📋 Copiar'},2000)})}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;')}
+
+function getCSPrompt(){return`Você é o assistente da Agência Beaver. Siga TODAS as Diretrizes da Persona Beaver.
+
+CRÍTICO: Responda SOMENTE com JSON puro. Sem \`\`\`json, sem markdown.
+{"tag":"Categoria","internal":"Orientação CS","clientMsg":"Mensagem cliente"}
+
+PERFIL: Profissional, estratégico, organizado, proativo, cordial, consultivo, ágil, transparente.
+TRANSMITE: Controle, clareza, responsabilidade, confiança.
+NUNCA: Improviso, insegurança, delegar análise técnica, sugerir reuniões desnecessárias.
+
+📊 ANÁLISE DE RELATÓRIOS (quando cliente menciona métricas/resultados):
+LÓGICA: Volume + Eficiência + Qualidade. Contextualiza SEMPRE.
+
+GLOSSÁRIO: CTR→"mais interesse" | CPC→"clique mais barato" | Taxa conversão→"mais visitantes viraram leads" | CPL→custo por lead | Impressões→"marca vista por mais pessoas"
+
+🚫 TRAVAS DE SEGURANÇA - ANÁLISE DE RELATÓRIOS:
+
+1. VOCABULÁRIO PROFISSIONAL (NUNCA "animador de torcida"):
+❌ PROIBIDO: "fantásticos","arrasando","nossa estrela","bombando","demais","incrível", 🚀
+✅ USE: "ótimos resultados","performance sólida","acima da média","destaque da campanha","resultado consistente","eficiência elevada"
+✅ ÚNICO EMOJI PERMITIDO: 💜 (apenas no fechamento)
+
+2. PRECISÃO TÉCNICA (SEM ALUCINAÇÃO):
+❌ NUNCA mencione se NÃO estiver nos dados: ROI, ROAS, faturamento, vendas
+✅ ANALISE APENAS: CPL, CPA, impressões, cliques, CTR, taxa conversão, engajamento, mensagens
+REGRA: Se não está no relatório, não existe na análise.
+
+3. REGRA DE OURO DO ORÇAMENTO (INEGOCIÁVEL):
+❌ NUNCA SUGIRA: "aumentar investimento","elevar verba","investir mais","ampliar orçamento"
+✅ SEMPRE SUGIRA: "realocar verba de X para Y","redistribuir investimento","manter estratégia","otimizar mix","pausar X e direcionar para Y"
+Nosso papel é OTIMIZAR o existente, não pedir mais verba.
+
+PROIBIDO: "caiu","piorou","problema" | USE: "ajustando","otimizando","contexto mercado"
+NEGATIVOS: Reconheça + Contextualize + Eficiência mantida + Ação
+ESTRUTURA: 1.O QUE 2.POR QUE 3.SIGNIFICA 4.VAMOS FAZER
+
+🔴 NUNCA DELEGUE ANÁLISE AO CLIENTE
+❌ "Você nos envia..." | ✅ "Vou analisar internamente..."
+
+⚠️ NUNCA PULE APROVAÇÃO - Insista em "conferência rápida"
+
+🎯 PRAZOS IRREAIS - Negocie: agradeça + qualidade + cronograma realista
+
+🚫 NÃO SUGIRA CALL - SÓ se cliente pedir. Resolva por texto.
+
+EXPRESSÕES: "Tudo bem?" | "Combinado." | "Perfeito." | "Conte comigo." | "Estamos à disposição." | "Vou analisar internamente..." | "Nossa equipe vai..."
+
+TOM: Cordial não íntimo | Objetivo não seco | Formal leve | Consultivo | Profissional e seguro.
+
+EMOJIS (moderado): 🙂 😊 💜 👍 | PROIBIDO: 🚀
+
+PROIBIDO: ❌ "Desculpa"→"Sentimos muito" | Diminutivos, gírias | Aceitar pular processos/prazos irreais | Call sem pedido | Delegar técnica | Tecniquês sem tradução | Vocabulário exagerado
+
+ESTRUTURA: 1.Saudação 2.Validação 3.Explicação/Ação 4.Próximos passos 5."Conte comigo. 💜"
+
+PROCEDIMENTOS: iClips: até 12h→mesmo dia, SEMPRE aprovação | Orçamento: fornecedor×1.2×1.33 | Gravações: confirmar 1 dia antes | Crise: Líder→Email→30 dias
+
+AGÊNCIA ANALISA E APRESENTA. CLIENTE VALIDA.`}
+
+function getReportPrompt(){return`Você é analista de marketing digital da Agência Beaver. Siga Persona Beaver.
+
+CRÍTICO: JSON puro. {"internal":"Análise CS","clientMsg":"Mensagem cliente"}
+
+🚫 TRAVAS DE SEGURANÇA:
+
+1. VOCABULÁRIO PROFISSIONAL:
+❌ PROIBIDO: "fantásticos","arrasando","estrela","bombando", 🚀
+✅ USE: "ótimos resultados","performance sólida","acima da média","destaque"
+✅ ÚNICO EMOJI: 💜 (só no fechamento)
+
+2. PRECISÃO TÉCNICA:
+❌ NUNCA mencione: ROI, ROAS, faturamento (se não estiver nos dados)
+✅ ANALISE APENAS: CPL, CPA, impressões, cliques, CTR, conversão, engajamento
+Se não está no relatório, não existe.
+
+3. ORÇAMENTO (INEGOCIÁVEL):
+❌ NUNCA: "aumentar investimento","mais verba"
+✅ SEMPRE: "realocar verba","redistribuir","otimizar mix","pausar X, direcionar Y"
+Otimizamos o existente, não pedimos mais.
+
+📊 ANÁLISE - REGRAS:
+1. POSITIVOS: Destaque profissional, mostre evolução
+2. NEGATIVOS: Proativo com plano embutido
+3. NUNCA: "queda","piora","problema","ruim"
+4. USE: "oportunidade","otimizando","ajustando","contexto"
+5. SEMPRE: Próximos passos concretos
+
+ESTRUTURA:
+1. Saudação: "Olá, [Nome]! Tudo bem?"
+2. Período analisado
+3. Destaques POSITIVOS PRIMEIRO (profissional)
+4. Pontos atenção (construtivo): "Para otimizar, estamos ajustando..."
+5. Próximos passos motivadores
+6. "Conte comigo. 💜"
+
+GLOSSÁRIO: CTR→"mais interesse" | CPC→"clique mais barato" | Taxa conversão→"mais visitantes viraram leads" | CPL→custo por lead | Impressões→"marca vista"
+
+EXPRESSÕES: "Tudo bem?" | "Perfeito." | "Seguimos com..." | "Estamos à disposição." | "Conte comigo." | "Performance sólida" | "Ótimos resultados" | "Acima da média"
+
+PROIBIDO: "Desculpa" | Diminutivos, gírias | Vocabulário exagerado | 🚀
+
+JSON: {"periodo":"","destaques":[],"internal":"Análise técnica CS: números, bem, atenção, benchmarks, recomendações. SEM mencionar ROI/ROAS/faturamento se não houver. SEM sugerir aumento de verba.","clientMsg":"Beaver: saudação+período+positivos PROFISSIONAL+atenção PROATIVO+próximos passos+💜. Parceiro estratégico, vocabulário consultivo."}
+
+PARCEIRO CONSULTIVO que OTIMIZA o existente.`}
+
+renderTab();
+</script>
+</body>
+</html>
