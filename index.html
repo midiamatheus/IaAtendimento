@@ -195,33 +195,45 @@ async function sendMessage(){
   loading=true;
   document.getElementById('sendBtn').disabled=true;
   showTyping();
-  try{
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getCSPrompt(),messages:[{role:'user',content:`${clientName?'Cliente: '+clientName+'\n':''}Situação: ${text}\nTom: ${tone}`}],max_tokens:1500})});
-    const data=await res.json();
-    removeTyping();
-    if(!res.ok){
-      console.error('API Error:',res.status,data);
-      addErrorMsg(`Erro ao gerar resposta (${res.status}). Veja console.`);
-      return;
-    }
-    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    let cleanRaw=raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
-    const jsonMatch=cleanRaw.match(/\{[\s\S]*\}/);
-    if(jsonMatch){cleanRaw=jsonMatch[0]}
-    let parsed;
+  
+  const makeRequest = async (attempt = 1) => {
     try{
-      parsed=JSON.parse(cleanRaw);
-      if(!parsed.clientMsg){parsed={tag:'Geral',internal:'Verifique.',clientMsg:cleanRaw}}
+      const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getCSPrompt(),messages:[{role:'user',content:`${clientName?'Cliente: '+clientName+'\n':''}Situação: ${text}\nTom: ${tone}`}],max_tokens:1500})});
+      const data=await res.json();
+      
+      if(res.status === 529 && attempt < 3){
+        console.log(`Tentativa ${attempt}/3 - Aguardando 2s...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return makeRequest(attempt + 1);
+      }
+      
+      removeTyping();
+      if(!res.ok){
+        console.error('API Error:',res.status,data);
+        addErrorMsg(`Erro ${res.status}. ${attempt < 3 ? 'Tentando novamente...' : 'Tente novamente em alguns segundos.'}`);
+        return;
+      }
+      const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+      let cleanRaw=raw.replace(/```json\n?/g,'').replace(/```\n?/g,'').trim();
+      const jsonMatch=cleanRaw.match(/\{[\s\S]*\}/);
+      if(jsonMatch){cleanRaw=jsonMatch[0]}
+      let parsed;
+      try{
+        parsed=JSON.parse(cleanRaw);
+        if(!parsed.clientMsg){parsed={tag:'Geral',internal:'Verifique.',clientMsg:cleanRaw}}
+      }catch(e){
+        console.error('Parse error:',e,cleanRaw);
+        parsed={tag:'Geral',internal:'Não foi possível processar.',clientMsg:cleanRaw}
+      }
+      addAssistantMsg(parsed)
     }catch(e){
-      console.error('Parse error:',e,cleanRaw);
-      parsed={tag:'Geral',internal:'Não foi possível processar.',clientMsg:cleanRaw}
-    }
-    addAssistantMsg(parsed)
-  }catch(e){
-    console.error('Request error:',e);
-    removeTyping();
-    addErrorMsg('Erro de conexão: '+e.message);
-  }finally{loading=false;document.getElementById('sendBtn').disabled=false}
+      console.error('Request error:',e);
+      removeTyping();
+      addErrorMsg('Erro de conexão: '+e.message);
+    }finally{loading=false;document.getElementById('sendBtn').disabled=false}
+  };
+  
+  await makeRequest();
 }
 
 function addUserMsg(txt){const c=document.getElementById('msgs'),d=document.createElement('div');d.className='msg-row user';d.innerHTML=`<div class="avatar">CS</div><div class="msg-content"><div class="msg-label" style="text-align:right">Equipe CS</div><div class="user-bubble">${esc(txt)}</div></div>`;c.appendChild(d);c.scrollTop=c.scrollHeight}
@@ -249,47 +261,57 @@ async function analyzeReport(){
   document.getElementById('analyzeBtn').disabled=true;
   document.getElementById('reportResult').innerHTML='<div class="msg-row"><div class="avatar">🦫</div><div class="typing-dots"><span></span><span></span><span></span></div></div>';
   
-  try{
-    const base64=await toBase64(reportFile);
-    const isPdf=reportFile.type==='application/pdf';
-    const clientName=document.getElementById('reportClient').value.trim();
-    const context=document.getElementById('reportContext').value.trim();
-    
-    const userContent=[
-      {type:isPdf?'document':'image',source:{type:'base64',media_type:reportFile.type,data:base64}},
-      {type:'text',text:`${clientName?'Cliente: '+clientName+'\n':''}${context?'Contexto: '+context:'Analise este relatório.'}`}
-    ];
-    
-    const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getReportPrompt(),messages:[{role:'user',content:userContent}],max_tokens:1500})});
-    const data=await res.json();
-    
-    if(!res.ok){
-      console.error('API Error:',res.status,data);
-      document.getElementById('reportResult').innerHTML=`<div class="error-bubble">Erro ao analisar (${res.status}). Veja console para detalhes.</div>`;
-      return;
-    }
-    
-    const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
-    let parsed;
+  const makeRequest = async (attempt = 1) => {
     try{
-      parsed=JSON.parse(raw.replace(/```json|```/gm,'').trim());
+      const base64=await toBase64(reportFile);
+      const isPdf=reportFile.type==='application/pdf';
+      const clientName=document.getElementById('reportClient').value.trim();
+      const context=document.getElementById('reportContext').value.trim();
+      
+      const userContent=[
+        {type:isPdf?'document':'image',source:{type:'base64',media_type:reportFile.type,data:base64}},
+        {type:'text',text:`${clientName?'Cliente: '+clientName+'\n':''}${context?'Contexto: '+context:'Analise este relatório.'}`}
+      ];
+      
+      const res=await fetch('/api/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({system:getReportPrompt(),messages:[{role:'user',content:userContent}],max_tokens:1500})});
+      const data=await res.json();
+      
+      if(res.status === 529 && attempt < 3){
+        console.log(`Tentativa ${attempt}/3 - Aguardando 2s...`);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        return makeRequest(attempt + 1);
+      }
+      
+      if(!res.ok){
+        console.error('API Error:',res.status,data);
+        document.getElementById('reportResult').innerHTML=`<div class="error-bubble">Erro ${res.status}. ${attempt < 3 ? 'Tentando novamente...' : 'Tente em alguns segundos.'}</div>`;
+        return;
+      }
+      
+      const raw=data.content.filter(b=>b.type==='text').map(b=>b.text).join('');
+      let parsed;
+      try{
+        parsed=JSON.parse(raw.replace(/```json|```/gm,'').trim());
+      }catch(e){
+        console.error('Parse error:',e,raw);
+        document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro ao processar JSON. Veja console.</div>';
+        return;
+      }
+      
+      const rid='r'+Date.now();
+      document.getElementById('reportResult').innerHTML=`
+        <div class="response-wrap" style="max-width:100%">
+          ${parsed.internal?'<div class="block-internal"><div class="block-label amber">⚙️ Análise para a CS</div><div>'+esc(parsed.internal)+'</div></div>':''}
+          <div class="block-msg"><div class="block-label beaver">💬 Mensagem para o cliente</div><div class="block-msg-text" id="${rid}">${esc(parsed.clientMsg)}</div></div>
+          <div class="actions-row"><button class="copy-btn" onclick="copy('${rid}',this)">📋 Copiar</button></div>
+        </div>`;
     }catch(e){
-      console.error('Parse error:',e,raw);
-      document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro ao processar JSON. Veja console.</div>';
-      return;
-    }
-    
-    const rid='r'+Date.now();
-    document.getElementById('reportResult').innerHTML=`
-      <div class="response-wrap" style="max-width:100%">
-        ${parsed.internal?'<div class="block-internal"><div class="block-label amber">⚙️ Análise para a CS</div><div>'+esc(parsed.internal)+'</div></div>':''}
-        <div class="block-msg"><div class="block-label beaver">💬 Mensagem para o cliente</div><div class="block-msg-text" id="${rid}">${esc(parsed.clientMsg)}</div></div>
-        <div class="actions-row"><button class="copy-btn" onclick="copy('${rid}',this)">📋 Copiar</button></div>
-      </div>`;
-  }catch(e){
-    console.error('Request error:',e);
-    document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro de conexão: '+e.message+'</div>';
-  }finally{loading=false;document.getElementById('analyzeBtn').disabled=false}
+      console.error('Request error:',e);
+      document.getElementById('reportResult').innerHTML='<div class="error-bubble">Erro de conexão: '+e.message+'</div>';
+    }finally{loading=false;document.getElementById('analyzeBtn').disabled=false}
+  };
+  
+  await makeRequest();
 }
 
 function toBase64(file){return new Promise((res,rej)=>{const r=new FileReader();r.onload=()=>res(r.result.split(',')[1]);r.onerror=rej;r.readAsDataURL(file)})}
